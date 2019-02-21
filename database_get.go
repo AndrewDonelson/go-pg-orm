@@ -12,18 +12,31 @@ import "github.com/pkg/errors"
 // GetModel attempts retrieve the given model from the database.
 func (d *Database) GetModel(model interface{}) error {
 
-	rows := d.DB.Set("gorm:auto_preload", true).Find(model)
-	if rows.RowsAffected != 1 || rows.Error != nil {
+	// Select model by given in model properties.
+	err := d.DB.Select(model)
+	if err != nil {
 		return errors.New("Could not get model")
 	}
+
+	//d.DB.Select(model)
+	//rows := d.DB.Set("gorm:auto_preload", true).Find(model)
+	//if rows.RowsAffected != 1 || rows.Error != nil {
+	//	return errors.New("Could not get model")
+	//}
 
 	return nil
 }
 
 // GetAllModels attempts retrieve all models based on the given model from the database.
-func (d *Database) GetAllModels(model interface{}) {
+func (d *Database) GetAllModels(model interface{}) error {
+	var all []interface{}
+	err := d.DB.Model(&all).Select()
+	if err != nil {
+		return errors.New("Could not get all models")
+	}
 
-	d.DB.Set("gorm:auto_preload", true).Order("created_at desc").Find(model)
+	return nil
+	//d.DB.Set("gorm:auto_preload", true).Order("created_at desc").Find(model)
 }
 
 // GetWithCondition attempts retrieve a model based on the given model and condition from the database.

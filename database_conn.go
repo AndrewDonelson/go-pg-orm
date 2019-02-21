@@ -8,15 +8,16 @@
 package pgorm
 
 import (
+	"crypto/tls"
+	"time"
+
 	"github.com/go-pg/pg"
 )
 
 // Open
 func (d *Database) Open() {
-	d.DB = pg.Connect(&pg.Options{
-		User: "postgres",
-	})
-	defer d.Close()
+	d.OpenWithOptions(defaultOptions())
+
 	if d.DB != nil {
 		d.Success("Database.Open", "Connected")
 	} else {
@@ -24,8 +25,39 @@ func (d *Database) Open() {
 	}
 }
 
+// OpenWithOptions
+func (d *Database) OpenWithOptions(opts *pg.Options) {
+	d.DB = pg.Connect(opts)
+	defer d.Close()
+}
+
 // Close
+
 func (d *Database) Close() {
 	d.DB.Close()
 	d.Info("Database.Close", "Closed")
+}
+
+func defaultOptions() *pg.Options {
+	return &pg.Options{
+		User:     "postgres",
+		Database: "postgres",
+
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+
+		MaxRetries:      1,
+		MinRetryBackoff: -1,
+
+		DialTimeout:  30 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+
+		PoolSize:           10,
+		MaxConnAge:         10 * time.Second,
+		PoolTimeout:        30 * time.Second,
+		IdleTimeout:        10 * time.Second,
+		IdleCheckFrequency: 100 * time.Millisecond,
+	}
 }

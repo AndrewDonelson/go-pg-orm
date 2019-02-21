@@ -7,6 +7,8 @@
 
 package pgorm
 
+import "github.com/go-pg/pg"
+
 // IDatabase defines the top level Database methods
 type IDatabase interface {
 	IConn
@@ -27,6 +29,9 @@ type ILogger interface {
 // IConn defines the connection related methods
 type IConn interface {
 	Open() error
+	OpenWithConnString(conn string) error
+	OpenWithEnv() error
+	OpenWithOptions(opts *pg.Options) error
 	Close() error
 }
 

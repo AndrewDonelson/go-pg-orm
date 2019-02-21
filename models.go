@@ -1,4 +1,4 @@
-package common
+package pgorm
 
 import (
 	"errors"
@@ -23,22 +23,39 @@ type Model struct {
 	isOpen bool
 }
 
+// Register adds the values to the models registry
+func (m *Model) Register(values ...interface{}) error {
+
+	// do not work on them.models first, this is like an insurance policy
+	// whenever we encounter any error in the values nothing goes into the registry
+	models := make(map[string]reflect.Value)
+	if len(values) > 0 {
+		for _, val := range values {
+			rVal := reflect.ValueOf(val)
+			if rVal.Kind() == reflect.Ptr {
+				rVal = rVal.Elem()
+			}
+			switch rVal.Kind() {
+			case reflect.Struct:
+				models[getTypName(rVal.Type())] = reflect.New(rVal.Type())
+			default:
+				return errors.New("models: models must be structs")
+			}
+		}
+	}
+
+	for k, v := range models {
+		m.models[k] = v
+	}
+
+	return nil
+}
+
 // NewModel returns a new Model without opening database connection
 func NewModel() *Model {
 	return &Model{
 		models: make(map[string]reflect.Value),
 	}
-}
-
-// Count returns the number of registered models
-func (m *Model) Count() int {
-	return len(m.models)
-}
-
-// IsOpen returns true if the Model has already established connection
-// to the database
-func (m *Model) IsOpen() bool {
-	return m.isOpen
 }
 
 // Settings: Database
@@ -47,15 +64,10 @@ func (m *Model) IsOpen() bool {
 // Automigrate      bool   `json:"automigrate" yaml:"automigrate" toml:"automigrate" hcl:"automigrate"`
 // DropTables       bool   `json:"droptables" yaml:"droptables" toml:"droptables" hcl:"droptables"`
 // NoModel          bool   `json:"no_model" yaml:"no_model" toml:"no_model" hcl:"no_model"`
-func (m *Model) OpenWithParams(database string, conn string, migrate bool, drop bool, nomodel bool) error {
-	//See if a database was defined in the config
-	if len(database) < 5 {
-		// Not using a database
-		return nil
-	}
+func (m *Model) OpenWithParams(conn string, migrate bool, drop bool, nomodel bool) error {
 
 	//try and open a connection to the database defined in the config
-	db, err := gorm.Open(database, conn)
+	db, err := m.Open(conn)
 	if err != nil {
 		return err
 	}
@@ -89,32 +101,15 @@ func (m *Model) OpenWithConfig(cfg *config.Config) error {
 	return nil
 }
 
-// Register adds the values to the models registry
-func (m *Model) Register(values ...interface{}) error {
+// Count returns the number of registered models
+func (m *Model) Count() int {
+	return len(m.models)
+}
 
-	// do not work on them.models first, this is like an insurance policy
-	// whenever we encounter any error in the values nothing goes into the registry
-	models := make(map[string]reflect.Value)
-	if len(values) > 0 {
-		for _, val := range values {
-			rVal := reflect.ValueOf(val)
-			if rVal.Kind() == reflect.Ptr {
-				rVal = rVal.Elem()
-			}
-			switch rVal.Kind() {
-			case reflect.Struct:
-				models[getTypName(rVal.Type())] = reflect.New(rVal.Type())
-			default:
-				return errors.New("models: models must be structs")
-			}
-		}
-	}
-
-	for k, v := range models {
-		m.models[k] = v
-	}
-
-	return nil
+// IsOpen returns true if the Model has already established connection
+// to the database
+func (m *Model) IsOpen() bool {
+	return m.isOpen
 }
 
 // DropTables Drops All Model Database Tables
