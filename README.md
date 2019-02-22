@@ -28,14 +28,20 @@ func (s Story) String() string {
 
 
 func main() {
-
-  //Create models object
+	// Create models object
 	models := *pgorm.Model.NewModel()
 	err = models.Open()
 	if err != nil {
 		return err
 	}
-  
-  //Do something with models
+	
+	// Register models
+	models.Register(
+		&models.User{},
+		&models.Story{},
+		// ... Register More models here ...
+	)
+	
+  	//Do something with models
 }
 ```
