@@ -6,19 +6,19 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/NlaakStudiosLLC/GoWAF-Framework/logger"
-	"github.com/NlaakStudiosLLC/GoWAF/framework/config"
-	"github.com/jinzhu/gorm"
+	//"github.com/NlaakStudiosLLC/GoWAF-Framework/logger"
+	//"github.com/NlaakStudiosLLC/GoWAF/framework/config"
+	//"github.com/jinzhu/gorm"
 
 	// support none, mysql, sqlite3 and postgresql
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	_ "github.com/lib/pq"
+	//_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/jinzhu/gorm/dialects/sqlite"
+	//_ "github.com/lib/pq"
 )
 
 // Model facilitate database interactions, supports postgres, mysql and foundation
 type Model struct {
-	*Database
+	iDatabase
 	models map[string]reflect.Value
 	isOpen bool
 }
@@ -65,37 +65,11 @@ func NewModel() *Model {
 // DropTables       bool   `json:"droptables" yaml:"droptables" toml:"droptables" hcl:"droptables"`
 // NoModel          bool   `json:"no_model" yaml:"no_model" toml:"no_model" hcl:"no_model"`
 func (m *Model) OpenWithParams(conn string, migrate bool, drop bool, nomodel bool) error {
-
 	//try and open a connection to the database defined in the config
-	db, err := m.Open(conn)
-	if err != nil {
-		return err
-	}
+	db := Open("")
 
 	//Success we have a database connection
-	m.DB = db
-	m.isOpen = true
-
-	return nil
-}
-
-// OpenWithConfig opens database connection with the settings found in cfg
-func (m *Model) OpenWithConfig(cfg *config.Config) error {
-
-	//See if a database was defined in the config
-	if len(cfg.Database) < 5 {
-		// Not using a database
-		return nil
-	}
-
-	//try and open a connection to the database defined in the config
-	db, err := gorm.Open(cfg.Database, cfg.DatabaseConn)
-	if err != nil {
-		return err
-	}
-
-	//Success we have a database connection
-	m.DB = db
+	m.iDatabase = db
 	m.isOpen = true
 
 	return nil
@@ -112,37 +86,27 @@ func (m *Model) IsOpen() bool {
 	return m.isOpen
 }
 
-// DropTables Drops All Model Database Tables
+//// DropTables Drops All Model Database Tables
 func (m *Model) DropTables(drop bool, verbose bool) {
-	if drop {
-		cnt := len(m.models)
-		dberr := ""
-
-		logger.LogThis.Warn(fmt.Sprintf("Dropping All [%d] Tables...", cnt))
-
-		for k, v := range m.models {
-
-			m.DB.DropTableIfExists(v.Interface())
-			if verbose {
-				if m.DB.Error != nil {
-					dberr = "Failed."
-				} else {
-					dberr = "Success."
-				}
-
-				logger.LogThis.Warn(fmt.Sprintf("- Dropping %s...%s", k, dberr))
+	//if drop {
+		for _, v := range m.models {
+			err := m.DeleteModel(v.Interface())
+			if err != nil  {
+				fmt.Println("errror", err)
 			}
 		}
-
-		logger.LogThis.Info("Done.")
+		fmt.Println("Deleted")
 	}
-}
+//}
 
 // AutoMigrateAll runs migrations for all the registered models
 func (m *Model) AutoMigrateAll(migrate bool) {
 	if migrate {
 		for _, v := range m.models {
-			m.DB.AutoMigrate(v.Interface())
+			err := m.CreateModel(v)
+			if err != nil {
+				fmt.Println("Error")
+			}
 		}
 	}
 }

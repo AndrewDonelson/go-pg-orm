@@ -7,7 +7,22 @@
 
 package pgorm
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"github.com/go-pg/pg/orm"
+)
+
+// SaveModel attempts add the given model to database.
+func (d *Database) CreateModel (model interface{}) error {
+	err := d.DB.CreateTable(model, &orm.CreateTableOptions{
+		IfNotExists: true,
+	})
+	if err != nil {
+		return errors.New("Could not create model")
+	}
+	return nil
+}
+
 
 // SaveModel attempts add the given model to database.
 func (d *Database) SaveModel(model interface{}) error {

@@ -10,29 +10,32 @@ package pgorm
 import (
 	"crypto/tls"
 	"time"
-
 	"github.com/go-pg/pg"
+	"log"
+	"os"
 )
 
-// Open
-func (d *Database) Open() {
-	d.OpenWithOptions(defaultOptions())
 
-	if d.DB != nil {
-		d.Success("Database.Open", "Connected")
-	} else {
-		d.Fatal("Database.Open", "Failed", nil)
+// Open
+func  Open(args ...interface{}) iDatabase{
+	if len(args) ==0 {
+		db := openWithOptions(defaultOptions())
+		return NewDatabase(db, log.New(os.Stdout, "", 1))
 	}
+
+	//Todo
+	db := openWithOptions(defaultOptions())
+	return NewDatabase(db, log.New(os.Stdout, "", 1))
 }
 
 // OpenWithOptions
-func (d *Database) OpenWithOptions(opts *pg.Options) {
-	d.DB = pg.Connect(opts)
-	defer d.Close()
+func openWithOptions(opts *pg.Options) *pg.DB{
+	pgDB := pg.Connect(opts)
+	defer pgDB.Close()
+	return  pgDB
 }
 
 // Close
-
 func (d *Database) Close() {
 	d.DB.Close()
 	d.Info("Database.Close", "Closed")
@@ -41,7 +44,7 @@ func (d *Database) Close() {
 func defaultOptions() *pg.Options {
 	return &pg.Options{
 		User:     "postgres",
-		Database: "postgres",
+		Database: "blog",
 
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,

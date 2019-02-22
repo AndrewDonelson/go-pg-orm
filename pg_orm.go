@@ -18,3 +18,11 @@ type Database struct {
 	DB  *pg.DB
 	Log *log.Logger
 }
+
+
+func NewDatabase(db *pg.DB, log *log.Logger) iDatabase {
+	return &Database{
+		DB:db,
+		Log:log,
+	}
+}
