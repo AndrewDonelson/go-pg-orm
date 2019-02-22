@@ -3,6 +3,10 @@ Wrapper that simplifies use of Golang ORM with focus on PostgreSQL found at http
 
 NOTE: Work in progress!
 
+### Installation
+To use this tool, install it from code with make install, go install directly, or 
+``` go get -u github.com/AndrewDonelson/go-pg-orm ```
+
 ### Example:
 ```
 type User struct {
