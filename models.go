@@ -66,7 +66,35 @@ func NewModel() *Model {
 // NoModel          bool   `json:"no_model" yaml:"no_model" toml:"no_model" hcl:"no_model"`
 func (m *Model) OpenWithParams(conn string, migrate bool, drop bool, nomodel bool) error {
 	//try and open a connection to the database defined in the config
-	db := Open("")
+	db, err := Open()
+
+	if err != nil {
+		return err
+	}
+
+	//Success we have a database connection
+	m.iDatabase = db
+	m.isOpen = true
+	
+	
+	return nil
+}
+
+
+// OpenWithConfig opens database connection with the settings found in cfg
+func (m *Model) OpenWithConfig(data []byte) error {
+
+	//See if a dabatase was defined in the config
+	if len(data) < 5 {
+		// Not using a database
+		return nil
+	}
+
+	db, err := OpenWithOptions(data)
+
+	if err != nil {
+		return err
+	}
 
 	//Success we have a database connection
 	m.iDatabase = db
@@ -74,6 +102,7 @@ func (m *Model) OpenWithParams(conn string, migrate bool, drop bool, nomodel boo
 
 	return nil
 }
+
 
 // Count returns the number of registered models
 func (m *Model) Count() int {
@@ -103,9 +132,9 @@ func (m *Model) DropTables(drop bool, verbose bool) {
 func (m *Model) AutoMigrateAll(migrate bool) {
 	if migrate {
 		for _, v := range m.models {
-			err := m.CreateModel(v)
+			err := m.CreateModel(v.Interface())
 			if err != nil {
-				fmt.Println("Error")
+				fmt.Println("Error",err)
 			}
 		}
 	}

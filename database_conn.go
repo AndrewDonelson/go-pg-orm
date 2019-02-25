@@ -13,26 +13,27 @@ import (
 	"github.com/go-pg/pg"
 	"log"
 	"os"
+	"encoding/json"
 )
 
 
-// Open
-func  Open(args ...interface{}) iDatabase{
-	if len(args) ==0 {
-		db := openWithOptions(defaultOptions())
-		return NewDatabase(db, log.New(os.Stdout, "", 1))
-	}
+// Open with default options
+func  Open() (iDatabase, error){
+	pgDB := pg.Connect(defaultOptions())
+	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 
-	//Todo
-	db := openWithOptions(defaultOptions())
-	return NewDatabase(db, log.New(os.Stdout, "", 1))
 }
 
-// OpenWithOptions
-func openWithOptions(opts *pg.Options) *pg.DB{
-	pgDB := pg.Connect(opts)
-	defer pgDB.Close()
-	return  pgDB
+// OpenWithOptions custom options
+func OpenWithOptions(data []byte) (iDatabase, error){
+	opts:= pg.Options{}
+	err := json.Unmarshal(data, &opts)
+	if err != nil {
+		return nil, err
+	}
+
+	pgDB := pg.Connect(&opts)
+	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
 
 // Close

@@ -40,7 +40,7 @@ func TestGinkgo(t *testing.T) {
 func pgOptions() *pg.Options {
 	return &pg.Options{
 		User:     "postgres",
-		Database: "postgres",
+		Database: "blog",
 
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
