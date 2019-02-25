@@ -57,3 +57,13 @@ func (d *Database) DeleteModel(model interface{}) error {
 
 	return nil
 }
+
+// DropTable drop table
+func (d *Database) DropTable(model interface{}) error {
+	err := d.DB.DropTable(model, &orm.DropTableOptions{true, true})
+	if err != nil {
+		return errors.New("Could not drop table")
+	}
+
+	return nil
+}

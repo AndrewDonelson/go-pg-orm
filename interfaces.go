@@ -51,4 +51,5 @@ type IChange interface {
 	UpdateModel(model interface{}) error
 	DeleteModel(model interface{}) error
 	CreateModel (model interface{}) error
+	DropTable(model interface{}) error
 }

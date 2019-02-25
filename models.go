@@ -25,7 +25,6 @@ type Model struct {
 
 // Register adds the values to the models registry
 func (m *Model) Register(values ...interface{}) error {
-
 	// do not work on them.models first, this is like an insurance policy
 	// whenever we encounter any error in the values nothing goes into the registry
 	models := make(map[string]reflect.Value)
@@ -75,8 +74,8 @@ func (m *Model) OpenWithParams(conn string, migrate bool, drop bool, nomodel boo
 	//Success we have a database connection
 	m.iDatabase = db
 	m.isOpen = true
-	
-	
+
+
 	return nil
 }
 
@@ -118,14 +117,14 @@ func (m *Model) IsOpen() bool {
 //// DropTables Drops All Model Database Tables
 func (m *Model) DropTables(drop bool, verbose bool) {
 	//if drop {
-		for _, v := range m.models {
-			err := m.DeleteModel(v.Interface())
-			if err != nil  {
-				fmt.Println("errror", err)
-			}
+	for _, v := range m.models {
+		err := m.DropTable(v.Interface())
+		if err != nil  {
+			fmt.Println("errror", err)
 		}
-		fmt.Println("Deleted")
 	}
+	fmt.Println("Deleted")
+}
 //}
 
 // AutoMigrateAll runs migrations for all the registered models
