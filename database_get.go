@@ -16,8 +16,11 @@ func (d *Database) GetModel(model interface{}) error {
 	// Select model by given in model properties.
 	err := d.DB.Select(model)
 	if err != nil {
+		d.Error("GetModel", "Model not get", err)
 		return errors.New("Could not get model")
 	}
+	
+	d.Success("GetModel", "Model retrieve successfully")
 	return nil
 }
 
@@ -25,9 +28,11 @@ func (d *Database) GetModel(model interface{}) error {
 func (d *Database) GetAllModels(model interface{}) error {
 	err := d.DB.Model(model).Select()
 	if err != nil {
+		d.Error("GetAllModels", "Models not get", err)
 		return errors.New("Could not get all models"+ err.Error())
 	}
-	
+
+	d.Success("GetAllModels", "Model retrieve successfully")
 	return nil
 }
 
@@ -35,8 +40,11 @@ func (d *Database) GetAllModels(model interface{}) error {
 func (d *Database) GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	//TODO check if conditions - string
 	if err := d.DB.Model(model).Where(condition.(string), args...).Select(); err != nil {
+		d.Error("GetWithCondition", "Models not get", err)
 		return errors.New("Could not get all models")
 	}
+	
+	d.Success("GetWithCondition", "Model retrieve successfully")
 	return nil
 }
 
@@ -44,8 +52,11 @@ func (d *Database) GetWithCondition(model interface{}, condition interface{}, ar
 func (d *Database) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	//TODO check if conditions - string
 	if err := d.DB.Model(model).Where(condition.(string), args...).Select(); err != nil {
+		d.Error("GetAllWithCondition", "Models not get", err)
 		return  errors.New("Could not get all models")
 	}
+	
+	d.Success("GetAllWithCondition", "Model retrieve successfully")
 	return nil
 }
 
