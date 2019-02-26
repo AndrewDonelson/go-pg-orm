@@ -8,11 +8,9 @@
 package pgorm
 
 
-//import "github.com/go-pg/pg"
-
 // IDatabase defines the top level Database methods
 type iDatabase interface {
-	//IConn
+	IConn
 	IGet
 	IChange
 	ILogger
@@ -29,11 +27,7 @@ type ILogger interface {
 
 // IConn defines the connection related methods
 type IConn interface {
-	//Open() error
-	//OpenWithConnString(conn string) error
-	////OpenWithEnv() error
-	//OpenWithOptions(opts *pg.Options)
-	Close() error
+	Close()
 }
 
 // IGet defines the get related methods
@@ -42,7 +36,6 @@ type IGet interface {
 	GetAllModels(model interface{}) error
 	GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error
 	GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error
-	//GetRowsWithCondition(interface{}, interface{}, ...interface{}) error
 }
 
 // IChange defines the change related methods

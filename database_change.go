@@ -12,7 +12,7 @@ import (
 	"github.com/go-pg/pg/orm"
 )
 
-// SaveModel attempts add the given model to database.
+// CreateModel attempts add the given model to database.
 func (d *Database) CreateModel (model interface{}) error {
 	err := d.DB.CreateTable(model, &orm.CreateTableOptions{
 		IfNotExists: true,
@@ -63,7 +63,7 @@ func (d *Database) DeleteModel(model interface{}) error {
 	return nil
 }
 
-// DropTable drop table
+// DropTable drop table from db
 func (d *Database) DropTable(model interface{}) error {
 	err := d.DB.DropTable(model, &orm.DropTableOptions{true, true})
 	if err != nil {

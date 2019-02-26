@@ -19,10 +19,10 @@ type Database struct {
 	Log *log.Logger
 }
 
-
+//NewDatabase - create instance of Database
 func NewDatabase(db *pg.DB, log *log.Logger) iDatabase {
 	return &Database{
-		DB:db,
-		Log:log,
+		DB:  db,
+		Log: log,
 	}
 }

@@ -9,36 +9,34 @@ package pgorm
 
 import (
 	"crypto/tls"
-	"time"
+	"encoding/json"
 	"github.com/go-pg/pg"
 	"log"
 	"os"
-	"encoding/json"
+	"time"
 )
 
-
-// Open with default options
-func  Open() (iDatabase, error){
-	pgDB := pg.Connect(defaultOptions())
-	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
-
-}
-
-// OpenWithOptions custom options
-func OpenWithOptions(data []byte) (iDatabase, error){
-	opts:= pg.Options{}
+// OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
+func OpenWithOptions(data []byte) (iDatabase, error) {
+	opts := pg.Options{}
 	err := json.Unmarshal(data, &opts)
 	if err != nil {
-		return nil, err
+		pgDB := pg.Connect(defaultOptions())
+		return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 	}
 
 	pgDB := pg.Connect(&opts)
 	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
 
-// Close
+// Close closes the database client
 func (d *Database) Close() {
-	d.DB.Close()
+	err := d.DB.Close()
+	if err != nil {
+		d.Error("Database.Close", "Can not Close DB", err)
+		return
+	}
+
 	d.Info("Database.Close", "Closed")
 }
 

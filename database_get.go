@@ -38,8 +38,13 @@ func (d *Database) GetAllModels(model interface{}) error {
 
 // GetWithCondition attempts retrieve a model based on the given model and condition from the database.
 func (d *Database) GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
-	//TODO check if conditions - string
-	if err := d.DB.Model(model).Where(condition.(string), args...).Select(); err != nil {
+	conditionStr := checkIfString(condition)
+	if len(conditionStr) == 0 {
+		d.Warn("GetWithCondition", "Bad condition")
+		return errors.New("Bad condition")
+	}
+
+	if err := d.DB.Model(model).Where(conditionStr, args...).Select(); err != nil {
 		d.Error("GetWithCondition", "Models not get", err)
 		return errors.New("Could not get all models")
 	}
@@ -50,8 +55,13 @@ func (d *Database) GetWithCondition(model interface{}, condition interface{}, ar
 
 // GetAllWithCondition attempts retrieve all models based on the given model and condition from the database.
 func (d *Database) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
-	//TODO check if conditions - string
-	if err := d.DB.Model(model).Where(condition.(string), args...).Select(); err != nil {
+	conditionStr := checkIfString(condition)
+	if len(conditionStr) == 0 {
+		d.Warn("GetWithCondition", "Bad condition")
+		return errors.New("Bad condition")
+	}
+
+	if err := d.DB.Model(model).Where(conditionStr, args...).Select(); err != nil {
 		d.Error("GetAllWithCondition", "Models not get", err)
 		return  errors.New("Could not get all models")
 	}
@@ -60,13 +70,13 @@ func (d *Database) GetAllWithCondition(model interface{}, condition interface{},
 	return nil
 }
 
-//// GetRowsWithCondition attempts retrieve a model based on the given model and condition from the database.
-//func (d *Database) GetRowsWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
-//
-//	rows := d.DB.Set("gorm:auto_preload", true).Where(condition, args...).Find(model)
-//	if rows.RowsAffected != 1 || rows.Error != nil {
-//		return errors.New("Could not get model")
-//	}
-//
-//	return nil
-//}
+
+//Check if conditions - string
+func checkIfString(data interface{}) string {
+	switch data.(type) {
+	case string:
+		return data.(string)
+	default:
+		return ""
+	}
+}
