@@ -7,11 +7,12 @@
 
 package pgorm
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 // GetModel attempts retrieve the given model from the database.
 func (d *Database) GetModel(model interface{}) error {
-
 	// Select model by given in model properties.
 	err := d.DB.Select(model)
 	if err != nil {
@@ -22,14 +23,12 @@ func (d *Database) GetModel(model interface{}) error {
 
 // GetAllModels attempts retrieve all models based on the given model from the database.
 func (d *Database) GetAllModels(model interface{}) error {
-	var all []interface{}
-	err := d.DB.Model(&all).Select()
+	err := d.DB.Model(model).Select()
 	if err != nil {
-		return errors.New("Could not get all models")
+		return errors.New("Could not get all models"+ err.Error())
 	}
-
+	
 	return nil
-	//d.DB.Set("gorm:auto_preload", true).Order("created_at desc").Find(model)
 }
 
 // GetWithCondition attempts retrieve a model based on the given model and condition from the database.
@@ -44,8 +43,7 @@ func (d *Database) GetWithCondition(model interface{}, condition interface{}, ar
 // GetAllWithCondition attempts retrieve all models based on the given model and condition from the database.
 func (d *Database) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	//TODO check if conditions - string
-	var all []interface{}
-	if err := d.DB.Model(all).Where(condition.(string), args...).Select(); err != nil {
+	if err := d.DB.Model(model).Where(condition.(string), args...).Select(); err != nil {
 		return  errors.New("Could not get all models")
 	}
 	return nil
