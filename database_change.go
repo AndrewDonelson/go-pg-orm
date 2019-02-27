@@ -36,7 +36,7 @@ func (d *Database) SaveModel(model interface{}) error {
 	}
 
 	d.Success("SaveModel", "Model saved successfully")
-	return d.GetModel(model)
+	return nil
 }
 
 // UpdateModel attempts update the given model in the database.

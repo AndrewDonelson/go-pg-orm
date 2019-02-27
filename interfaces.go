@@ -10,7 +10,7 @@ package pgorm
 
 // IDatabase defines the top level Database methods
 type iDatabase interface {
-	IConn
+	IClose
 	IGet
 	IChange
 	ILogger
@@ -26,7 +26,7 @@ type ILogger interface {
 }
 
 // IConn defines the connection related methods
-type IConn interface {
+type IClose interface {
 	Close()
 }
 

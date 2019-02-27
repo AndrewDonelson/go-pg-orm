@@ -16,6 +16,15 @@ type Model struct {
 	Drop    bool
 }
 
+// NewModel returns a new Model without opening database connection
+func NewModel(migrate, dropTable bool) *Model {
+	return &Model{
+		models:  make(map[string]reflect.Value),
+		Migrate: migrate,
+		Drop:    dropTable,
+	}
+}
+
 // Register adds the values to the models registry
 func (m *Model) Register(values ...interface{}) error {
 	// do not work on them.models first, this is like an insurance policy
@@ -43,19 +52,10 @@ func (m *Model) Register(values ...interface{}) error {
 	return nil
 }
 
-// NewModel returns a new Model without opening database connection
-func NewModel(migrate, dropTable bool) *Model {
-	return &Model{
-		models: make(map[string]reflect.Value),
-		Migrate: migrate,
-		Drop: dropTable,
-	}
-}
-
 //OpenWithConfig - opens database connection with the incoming settings,
 //if bad cfg income - use default cfg
 func (m *Model) OpenWithConfig(cfg []byte) error {
-	db, err := OpenWithOptions(cfg)
+	db, err := openWithOptions(cfg)
 
 	if err != nil {
 		return err
@@ -79,28 +79,32 @@ func (m *Model) IsOpen() bool {
 }
 
 // DropTables Drops All Model Database Tables
-func (m *Model) DropTables() {
+func (m *Model) DropTables() error {
 	if m.Drop {
 		for _, v := range m.models {
 			err := m.DropTable(v.Interface())
 			if err != nil {
-				fmt.Println("errror", err)
+				fmt.Println("error", err)
+				return err
 			}
 		}
 		fmt.Println("Deleted")
 	}
+	return nil
 }
 
 // AutoMigrateAll runs migrations for all the registered models
-func (m *Model) AutoMigrateAll() {
+func (m *Model) AutoMigrateAll() error {
 	if m.Migrate {
 		for _, v := range m.models {
 			err := m.CreateModel(v.Interface())
 			if err != nil {
 				fmt.Println("Error", err)
+				return err
 			}
 		}
 	}
+	return nil
 }
 
 func getTypName(typ reflect.Type) string {

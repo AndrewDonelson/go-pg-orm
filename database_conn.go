@@ -17,7 +17,7 @@ import (
 )
 
 // OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
-func OpenWithOptions(data []byte) (iDatabase, error) {
+func openWithOptions(data []byte) (iDatabase, error) {
 	opts := pg.Options{}
 	err := json.Unmarshal(data, &opts)
 	if err != nil {
