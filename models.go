@@ -67,6 +67,21 @@ func (m *Model) OpenWithConfig(cfg []byte) error {
 	return nil
 }
 
+//OpenWithConfig - opens database connection with the incoming settings,
+//if bad cfg income - use default cfg
+func (m *Model) OpenWithDefault() error {
+	db, err := openWithDefaultOpts()
+
+	if err != nil {
+		return err
+	}
+
+	//Success we have a database connection
+	m.iDatabase = db
+	m.isOpen = true
+	return nil
+}
+
 // Count returns the number of registered models
 func (m *Model) Count() int {
 	return len(m.models)

@@ -16,16 +16,28 @@ import (
 	"time"
 )
 
+const(
+	userName  = "postgres"
+	dbname = "blog"
+)
+
 // OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
 func openWithOptions(data []byte) (iDatabase, error) {
 	opts := pg.Options{}
 	err := json.Unmarshal(data, &opts)
 	if err != nil {
-		pgDB := pg.Connect(defaultOptions())
+		//connect with default options
+		pgDB := pg.Connect(defaultOptions(userName, dbname))
 		return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 	}
 
 	pgDB := pg.Connect(&opts)
+	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
+}
+
+// openWithDefaultOpts -  Options must be converted into pg.Options{}, if not - use default options
+func openWithDefaultOpts() (iDatabase, error) {
+	pgDB := pg.Connect(defaultOptions(userName, dbname))
 	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
 
@@ -40,10 +52,10 @@ func (d *Database) Close() {
 	d.Info("Database.Close", "Closed")
 }
 
-func defaultOptions() *pg.Options {
+func defaultOptions(user, database string) *pg.Options {
 	return &pg.Options{
-		User:     "postgres",
-		Database: "blog",
+		User:     user,
+		Database: database,
 
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
