@@ -54,8 +54,8 @@ func (m *Model) Register(values ...interface{}) error {
 
 //OpenWithConfig - opens database connection with the incoming settings,
 //if bad cfg income - use default cfg
-func (m *Model) OpenWithConfig(cfg []byte) error {
-	db, err := openWithOptions(cfg)
+func (m *Model) OpenWithConfig(user, database string, cfg []byte) error {
+	db, err := openWithOptions(user, database, cfg)
 
 	if err != nil {
 		return err
@@ -69,8 +69,8 @@ func (m *Model) OpenWithConfig(cfg []byte) error {
 
 //OpenWithConfig - opens database connection with the incoming settings,
 //if bad cfg income - use default cfg
-func (m *Model) OpenWithDefault() error {
-	db, err := openWithDefaultOpts()
+func (m *Model) OpenWithDefault(user, database string,) error {
+	db, err := openWithDefaultOpts(user, database)
 
 	if err != nil {
 		return err

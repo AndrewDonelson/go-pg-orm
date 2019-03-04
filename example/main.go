@@ -9,12 +9,16 @@ import (
 
 )
 
+const(
+	userName  = "postgres"
+	dbname = "blog"
+)
+
 func main() {
 	var err error
 	mod := goPg.NewModel(true, true)
 
-	//use default configs - []byte("")
-	err = mod.OpenWithConfig([]byte(""))
+	err = mod.OpenWithDefault(userName, dbname)
 	if err != nil {
 		return
 	}
