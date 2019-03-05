@@ -12,13 +12,14 @@ import (
 const(
 	userName  = "postgres"
 	dbname = "blog"
+	password = ""
 )
 
 func main() {
 	var err error
 	mod := goPg.NewModel(true, true)
 
-	err = mod.OpenWithDefault(userName, dbname)
+	err = mod.OpenWithDefault(userName, dbname, password)
 	if err != nil {
 		return
 	}
