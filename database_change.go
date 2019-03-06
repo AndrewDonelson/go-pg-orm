@@ -7,25 +7,47 @@
 
 package pgorm
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"github.com/go-pg/pg/orm"
+)
+
+// CreateModel attempts add the given model to database.
+func (d *Database) CreateModel (model interface{}) error {
+	err := d.DB.CreateTable(model, &orm.CreateTableOptions{
+		IfNotExists: true,
+	})
+	if err != nil {
+		d.Error("CreateModel", "Model not created", err)
+		return errors.New("Could not create model"+ err.Error())
+	}
+
+	d.Success("CreateModel", "Model created successfully")
+	return nil
+}
+
 
 // SaveModel attempts add the given model to database.
 func (d *Database) SaveModel(model interface{}) error {
 	err := d.DB.Insert(model)
 	if err != nil {
+		d.Error("SaveModel", "Model not saved", err)
 		return errors.New("Could not create model")
 	}
 
-	return d.GetModel(model)
+	d.Success("SaveModel", "Model saved successfully")
+	return nil
 }
 
 // UpdateModel attempts update the given model in the database.
 func (d *Database) UpdateModel(model interface{}) error {
 	err := d.DB.Update(model)
 	if err != nil {
+		d.Error("UpdateModel", "Model not updated", err)
 		return errors.New("Could not update model")
 	}
 
+	d.Success("UpdateModel", "Model updated successfully")
 	return nil
 }
 
@@ -33,8 +55,22 @@ func (d *Database) UpdateModel(model interface{}) error {
 func (d *Database) DeleteModel(model interface{}) error {
 	err := d.DB.Delete(model)
 	if err != nil {
+		d.Error("DeleteModel", "Model not delete", err)
 		return errors.New("Could not delete model")
 	}
 
+	d.Success("DeleteModel", "Model deleted successfully")
+	return nil
+}
+
+// DropTable drop table from db
+func (d *Database) DropTable(model interface{}) error {
+	err := d.DB.DropTable(model, &orm.DropTableOptions{true, true})
+	if err != nil {
+		d.Error("DropTable", "Model not drop", err)
+		return errors.New("Could not drop table")
+	}
+
+	d.Success("DropTable", "Model droped successfully")
 	return nil
 }

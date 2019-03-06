@@ -1,14 +1,14 @@
-package pgorm_test
+package pgorm
 
 import (
 	"crypto/tls"
 	"testing"
 	"time"
 
-	"github.com/AndrewDonelson/go-pg-orm"
 	"github.com/go-pg/pg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"fmt"
 )
 
 type User struct {
@@ -40,7 +40,7 @@ func TestGinkgo(t *testing.T) {
 func pgOptions() *pg.Options {
 	return &pg.Options{
 		User:     "postgres",
-		Database: "postgres",
+		Database: "blog",
 
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -63,24 +63,15 @@ func pgOptions() *pg.Options {
 
 func TestRegisterModels(t *testing.T) {
 
-	models := *pgorm.Model.NewModel()
-	err = models.Open()
-	if err != nil {
-		return err
-	}
+	models := NewModel()	//models.Open()
 
 	models.Register(
-		&models.User{},
-		&models.Story{},
+		&User{},
+		&Story{},
 		// ... Register More models here ...
 	)
 }
 func TestDBString(t *testing.T) {
-	models = *pgorm.Model.NewModel()
-	err = models.Open("")
-	if err != nil {
-		return err
-	}
 
 	db := pg.Connect(pgOptions())
 	defer db.Close()

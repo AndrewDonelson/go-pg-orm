@@ -9,40 +9,51 @@ package pgorm
 
 import (
 	"crypto/tls"
-	"time"
-
+	"encoding/json"
 	"github.com/go-pg/pg"
+	"log"
+	"os"
+	"time"
 )
 
-// Open
-func (d *Database) Open() {
-	d.OpenWithOptions(defaultOptions())
 
-	if d.DB != nil {
-		d.Success("Database.Open", "Connected")
-	} else {
-		d.Fatal("Database.Open", "Failed", nil)
+
+// OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
+func openWithOptions(user, database, password string, data []byte) (iDatabase, error) {
+	opts := pg.Options{}
+	err := json.Unmarshal(data, &opts)
+	if err != nil {
+		//connect with default options
+		pgDB := pg.Connect(defaultOptions(user, database, password))
+		return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 	}
+
+	pgDB := pg.Connect(&opts)
+	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
 
-// OpenWithOptions
-func (d *Database) OpenWithOptions(opts *pg.Options) {
-	d.DB = pg.Connect(opts)
-	defer d.Close()
+// openWithDefaultOpts -  Options must be converted into pg.Options{}, if not - use default options
+func openWithDefaultOpts(user, database, password string) (iDatabase, error) {
+	pgDB := pg.Connect(defaultOptions(user, database, password))
+	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
 
-// Close
-
+// Close closes the database client
 func (d *Database) Close() {
-	d.DB.Close()
+	err := d.DB.Close()
+	if err != nil {
+		d.Error("Database.Close", "Can not Close DB", err)
+		return
+	}
+
 	d.Info("Database.Close", "Closed")
 }
 
-func defaultOptions() *pg.Options {
+func defaultOptions(user, database, password string) *pg.Options {
 	return &pg.Options{
-		User:     "postgres",
-		Database: "postgres",
-
+		User:     user,
+		Database: database,
+		Password: password,
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
