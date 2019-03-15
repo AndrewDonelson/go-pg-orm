@@ -10,13 +10,12 @@ package pgorm
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/go-pg/pg"
 	"log"
 	"os"
 	"time"
+
+	"github.com/go-pg/pg"
 )
-
-
 
 // OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
 func openWithOptions(user, database, password string, data []byte) (iDatabase, error) {

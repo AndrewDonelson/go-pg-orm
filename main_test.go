@@ -5,31 +5,32 @@ import (
 	"testing"
 	"time"
 
+	"fmt"
+
 	"github.com/go-pg/pg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"fmt"
 )
 
 type User struct {
-    Id     int64
-    Name   string
-    Emails []string
+	Id     int64
+	Name   string
+	Emails []string
 }
 
 func (u User) String() string {
-    return fmt.Sprintf("User<%d %s %v>", u.Id, u.Name, u.Emails)
+	return fmt.Sprintf("User<%d %s %v>", u.Id, u.Name, u.Emails)
 }
 
 type Story struct {
-    Id       int64
-    Title    string
-    AuthorId int64
-    Author   *User
+	Id       int64
+	Title    string
+	AuthorId int64
+	Author   *User
 }
 
 func (s Story) String() string {
-    return fmt.Sprintf("Story<%d %s %s>", s.Id, s.Title, s.Author)
+	return fmt.Sprintf("Story<%d %s %s>", s.Id, s.Title, s.Author)
 }
 
 func TestGinkgo(t *testing.T) {
@@ -61,9 +62,16 @@ func pgOptions() *pg.Options {
 	}
 }
 
+func TestCreateKeyPair(t *testing.T) {
+	err := GenerateCertificate("127.0.0.1", "./", "My Company LLC")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRegisterModels(t *testing.T) {
 
-	models := NewModel()	//models.Open()
+	models := NewModel(true, true) //models.Open()
 
 	models.Register(
 		&User{},
