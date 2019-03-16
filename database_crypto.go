@@ -1,3 +1,9 @@
+// Copyright 2019 Andrew Donelson. All rights reserved.
+// Use of this source code is governed by a BSD 2-Clause
+// "Simplified" License that can be found at
+// https://github.com/go-pg/pg/blob/master/LICENSE
+
+// Wrapper that simplifies use of Golang ORM with focus on PostgreSQL
 package pgorm
 
 import (
@@ -5,17 +11,64 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/go-pg/pg"
 )
+
+const (
+	pgORMcrtFile = "pgorm-cert.pem"
+	pgORMkeyFile = "pgorm-key.pem"
+)
+
+// Credit: https://gist.github.com/choestelus/8ddcc7106cc247cb5129d4e9c8ba5d64
+func LoadCertificate(pgOptions *pg.Options) error {
+	//cert, err := tls.LoadX509KeyPair("postgresql.crt", "postgresql.key")
+	cert, err := tls.LoadX509KeyPair(pgORMcrtFile, pgORMkeyFile)
+	if err != nil {
+		log.Printf("failed to load client certificate: %v", err)
+		return err
+	}
+
+	//CAFile := "root.crt"
+
+	CACert, err := ioutil.ReadFile(pgORMcrtFile)
+	if err != nil {
+		log.Printf("failed to load server certificate: %v", err)
+		return err
+	}
+
+	CACertPool := x509.NewCertPool()
+	CACertPool.AppendCertsFromPEM(CACert)
+
+	tlsConfig := &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		RootCAs:            CACertPool,
+		InsecureSkipVerify: true,
+		// ServerName:         "localhost",
+	}
+
+	pgOptions.TLSConfig = tlsConfig
+	// opt := &pg.Options{
+	// 	Addr:      "localhost:5432",
+	// 	Database:  "postgres",
+	// 	User:      "postgres",
+	// 	TLSConfig: tlsConfig,
+	// }
+
+	return nil
+}
 
 func publicKey(priv interface{}) interface{} {
 	switch k := priv.(type) {
@@ -68,8 +121,6 @@ func GenerateCertificate(host, destDir, organization string) error {
 		organization = "ACME Company"
 	}
 
-	crtFile := "pgorm-cert.pem"
-	keyFile := "pgorm-key.pem"
 	validFrom := ""
 	validFor := 365 * 24 * time.Hour
 	isCA := false
@@ -152,39 +203,39 @@ func GenerateCertificate(host, destDir, organization string) error {
 		return err
 	}
 
-	certOut, err := os.Create(crtFile)
+	certOut, err := os.Create(pgORMcrtFile)
 	if err != nil {
-		log.Fatalf("failed to open %s for writing: %s", crtFile, err)
+		log.Fatalf("failed to open %s for writing: %s", pgORMcrtFile, err)
 		return err
 	}
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
-		log.Fatalf("failed to write data to %s: %s", crtFile, err)
+		log.Fatalf("failed to write data to %s: %s", pgORMcrtFile, err)
 		return err
 	}
 
 	if err := certOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", crtFile, err)
+		log.Fatalf("error closing %s: %s", pgORMcrtFile, err)
 		return err
 	}
-	log.Printf("wrote %s\n", crtFile)
+	log.Printf("wrote %s\n", pgORMcrtFile)
 
-	keyOut, err := os.OpenFile(keyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyOut, err := os.OpenFile(pgORMkeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Printf("failed to open %s for writing: %s", keyFile, err)
+		log.Printf("failed to open %s for writing: %s", pgORMkeyFile, err)
 		return err
 	}
 
 	if err := pem.Encode(keyOut, pemBlockForKey(priv)); err != nil {
-		log.Fatalf("failed to write data to %s: %s", keyFile, err)
+		log.Fatalf("failed to write data to %s: %s", pgORMkeyFile, err)
 		return err
 	}
 
 	if err := keyOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", keyFile, err)
+		log.Fatalf("error closing %s: %s", pgORMkeyFile, err)
 		return err
 	}
 
-	log.Printf("wrote %s\n", keyFile)
+	log.Printf("wrote %s\n", pgORMkeyFile)
 	return nil
 }

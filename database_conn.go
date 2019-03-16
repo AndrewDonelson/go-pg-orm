@@ -18,7 +18,7 @@ import (
 )
 
 // OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
-func openWithOptions(user, database, password string, data []byte) (iDatabase, error) {
+func openWithOptions(user, database, password string, data []byte) (IDatabase, error) {
 	opts := pg.Options{}
 	err := json.Unmarshal(data, &opts)
 	if err != nil {
@@ -32,7 +32,7 @@ func openWithOptions(user, database, password string, data []byte) (iDatabase, e
 }
 
 // openWithDefaultOpts -  Options must be converted into pg.Options{}, if not - use default options
-func openWithDefaultOpts(user, database, password string) (iDatabase, error) {
+func openWithDefaultOpts(user, database, password string) (IDatabase, error) {
 	pgDB := pg.Connect(defaultOptions(user, database, password))
 	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
 }
@@ -48,8 +48,10 @@ func (d *Database) Close() {
 	d.Info("Database.Close", "Closed")
 }
 
+// defaultOptions sets the default options.
+// Note: this is called (first) even if you open a connection with parameters.
 func defaultOptions(user, database, password string) *pg.Options {
-	return &pg.Options{
+	opts := &pg.Options{
 		User:     user,
 		Database: database,
 		Password: password,
@@ -70,4 +72,8 @@ func defaultOptions(user, database, password string) *pg.Options {
 		IdleTimeout:        10 * time.Second,
 		IdleCheckFrequency: 100 * time.Millisecond,
 	}
+
+	LoadCertificate(opts)
+
+	return opts
 }

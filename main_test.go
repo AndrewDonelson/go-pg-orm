@@ -7,6 +7,7 @@ import (
 
 	"fmt"
 
+	//"github.com/AndrewDonelson/go-pg-orm"
 	"github.com/go-pg/pg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,18 +43,14 @@ func pgOptions() *pg.Options {
 	return &pg.Options{
 		User:     "postgres",
 		Database: "blog",
-
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
-
-		MaxRetries:      1,
-		MinRetryBackoff: -1,
-
-		DialTimeout:  30 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-
+		MaxRetries:         1,
+		MinRetryBackoff:    -1,
+		DialTimeout:        30 * time.Second,
+		ReadTimeout:        10 * time.Second,
+		WriteTimeout:       10 * time.Second,
 		PoolSize:           10,
 		MaxConnAge:         10 * time.Second,
 		PoolTimeout:        30 * time.Second,
@@ -116,5 +113,5 @@ func TestOnConnect(t *testing.T) {
 }
 
 func test_package() {
-
+	db := NewDatabase(db *pg.DB, log *log.Logger)
 }
