@@ -19,10 +19,35 @@ type Database struct {
 	Log *log.Logger
 }
 
-//NewDatabase - create instance of Database
-func NewDatabase(db *pg.DB, log *log.Logger) iDatabase {
+// NewDatabase - create instance of Database
+func NewDatabase(db *pg.DB, log *log.Logger) IDatabase {
 	return &Database{
 		DB:  db,
 		Log: log,
 	}
+}
+
+
+func NewDB(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables bool, models ...interface{}) (*Model, error) {
+	var err error
+	mod := NewModel(migrate, droptables)
+
+	err = mod.OpenWithDefault("postgres", "blog", "")
+	if err != nil {
+		return nil, err
+	}
+
+	//register new model(s)
+	err = mod.Register(&models)
+	if err != nil {
+		return nil, err
+	}
+
+	//migrate model
+	err = mod.AutoMigrateAll()
+	if err != nil {
+		return nil, err
+	}
+
+	return mod, nil
 }

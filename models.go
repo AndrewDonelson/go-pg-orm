@@ -1,3 +1,10 @@
+// Copyright 2019 Andrew Donelson. All rights reserved.
+// Use of this source code is governed by a BSD 2-Clause
+// "Simplified" License that can be found at
+// https://github.com/go-pg/pg/blob/master/LICENSE
+
+// Wrapper that simplifies use of Golang ORM with focus on PostgreSQL
+
 package pgorm
 
 import (
@@ -9,7 +16,7 @@ import (
 
 // Model facilitate database interactions, supports postgres, mysql and foundation
 type Model struct {
-	iDatabase
+	IDatabase
 	models  map[string]reflect.Value
 	isOpen  bool
 	Migrate bool
@@ -54,7 +61,7 @@ func (m *Model) Register(values ...interface{}) error {
 
 //OpenWithConfig - opens database connection with the incoming settings,
 //if bad cfg income - use default cfg
-func (m *Model) OpenWithConfig(user, database,password  string, cfg []byte) error {
+func (m *Model) OpenWithConfig(user, database, password string, cfg []byte) error {
 	db, err := openWithOptions(user, database, password, cfg)
 
 	if err != nil {
@@ -62,14 +69,14 @@ func (m *Model) OpenWithConfig(user, database,password  string, cfg []byte) erro
 	}
 
 	//Success we have a database connection
-	m.iDatabase = db
+	m.IDatabase = db
 	m.isOpen = true
 	return nil
 }
 
 //OpenWithConfig - opens database connection with the incoming settings,
 //if bad cfg income - use default cfg
-func (m *Model) OpenWithDefault(user, database,password string) error {
+func (m *Model) OpenWithDefault(user, database, password string) error {
 	db, err := openWithDefaultOpts(user, database, password)
 
 	if err != nil {
@@ -77,7 +84,7 @@ func (m *Model) OpenWithDefault(user, database,password string) error {
 	}
 
 	//Success we have a database connection
-	m.iDatabase = db
+	m.IDatabase = db
 	m.isOpen = true
 	return nil
 }

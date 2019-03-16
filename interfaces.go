@@ -9,7 +9,7 @@ package pgorm
 
 
 // IDatabase defines the top level Database methods
-type iDatabase interface {
+type IDatabase interface {
 	IClose
 	IGet
 	IChange
