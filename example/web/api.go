@@ -4,7 +4,7 @@ package web
 import (
 	goPg "github.com/AndrewDonelson/go-pg-orm"
 
-	"github.com/AndrewDonelson/example/web/controllers"
+	"github.com/AndrewDonelson/go-pg-orm/example/web/controllers"
 	"github.com/gorilla/mux"
 	"net/http"
 )

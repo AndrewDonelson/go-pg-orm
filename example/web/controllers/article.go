@@ -3,7 +3,7 @@ package controllers
 import (
 	goPg "github.com/AndrewDonelson/go-pg-orm"
 	"net/http"
-	"github.com/AndrewDonelson/example/model"
+	"github.com/AndrewDonelson/go-pg-orm/example/model"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
