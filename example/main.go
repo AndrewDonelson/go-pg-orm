@@ -3,15 +3,13 @@ package main
 import (
 	goPg "github.com/AndrewDonelson/go-pg-orm"
 
-	"github.com/AndrewDonelson/example/web"
-	"github.com/AndrewDonelson/example/model"
-
-
+	"github.com/AndrewDonelson/go-pg-orm/example/model"
+	"github.com/AndrewDonelson/go-pg-orm/example/web"
 )
 
-const(
-	userName  = "postgres"
-	dbname = "blog"
+const (
+	userName = "postgres"
+	dbname   = "blog"
 	password = ""
 )
 
