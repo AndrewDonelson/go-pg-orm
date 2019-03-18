@@ -15,25 +15,29 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/big"
 	"net"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/go-pg/pg"
 )
 
-const (
-	pgORMcrtFile = "pgorm-cert.pem"
-	pgORMkeyFile = "pgorm-key.pem"
-)
+/********************************************************************
+*** ModelDB:IManager Implementation Methods						  ***
+********************************************************************/
 
 // Credit: https://gist.github.com/choestelus/8ddcc7106cc247cb5129d4e9c8ba5d64
-func LoadCertificate(pgOptions *pg.Options) error {
+func (mdb *ModelDB) LoadCertificate() error {
+	if !fileExists(pgORMcrtFile) || !fileExists(pgORMkeyFile) {
+		mdb.GenerateCertificate(mdb.opts.host, pgORMDestDir, "")
+	}
 	//cert, err := tls.LoadX509KeyPair("postgresql.crt", "postgresql.key")
 	cert, err := tls.LoadX509KeyPair(pgORMcrtFile, pgORMkeyFile)
 	if err != nil {
@@ -70,33 +74,6 @@ func LoadCertificate(pgOptions *pg.Options) error {
 	return nil
 }
 
-func publicKey(priv interface{}) interface{} {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &k.PublicKey
-	case *ecdsa.PrivateKey:
-		return &k.PublicKey
-	default:
-		return nil
-	}
-}
-
-func pemBlockForKey(priv interface{}) *pem.Block {
-	switch k := priv.(type) {
-	case *rsa.PrivateKey:
-		return &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(k)}
-	case *ecdsa.PrivateKey:
-		b, err := x509.MarshalECPrivateKey(k)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to marshal ECDSA private key: %v", err)
-			os.Exit(2)
-		}
-		return &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}
-	default:
-		return nil
-	}
-}
-
 // Generate a self-signed X.509 certificate for a TLS server. Outputs to
 // 'pgorm-cert.pem' and 'pgorm-key.pem' and will overwrite existing files.
 //
@@ -106,7 +83,7 @@ func pemBlockForKey(priv interface{}) *pem.Block {
 //	isCA       = "ca", false, "whether this cert should be its own Certificate Authority"
 //	rsaBits    = "rsa-bits", 2048, "Size of RSA key to generate. Ignored if --ecdsa-curve is set"
 //	ecdsaCurve = "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521"
-func GenerateCertificate(host, destDir, organization string) error {
+func (mdb *ModelDB) GenerateCertificate(host, destDir, organization string) error {
 	//flag.Parse()
 
 	if len(host) == 0 {
@@ -238,4 +215,71 @@ func GenerateCertificate(host, destDir, organization string) error {
 
 	log.Printf("wrote %s\n", pgORMkeyFile)
 	return nil
+}
+
+// Register adds the values to the models registry
+func (mdb *ModelDB) Register(values ...interface{}) error {
+	// do not work on the models first, this is like an insurance policy
+	// whenever we encounter any error in the values nothing goes into the registry
+	models := make(map[string]reflect.Value)
+	if len(values) > 0 {
+		for _, val := range values {
+			rVal := reflect.ValueOf(val)
+			if rVal.Kind() == reflect.Ptr {
+				rVal = rVal.Elem()
+			}
+			switch rVal.Kind() {
+			case reflect.Struct:
+				models[getTypName(rVal.Type())] = reflect.New(rVal.Type())
+			default:
+				return errors.New("models: models must be structs")
+			}
+		}
+	}
+
+	for k, v := range models {
+		mdb.models[k] = v
+	}
+
+	return nil
+}
+
+// DropTables Drops All Model Database Tables
+func (mdb *ModelDB) DropTables() error {
+	if mdb.Drop {
+		for _, v := range mdb.models {
+			err := mdb.DropTable(v.Interface())
+			if err != nil {
+				fmt.Println("error", err)
+				return err
+			}
+		}
+		fmt.Println("Deleted")
+	}
+	return nil
+}
+
+// AutoMigrateAll runs migrations for all the registered models
+func (mdb *ModelDB) AutoMigrateAll() error {
+	if mdb.Migrate {
+		for _, v := range mdb.models {
+			err := mdb.CreateModel(v.Interface())
+			if err != nil {
+				fmt.Println("Error", err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// IsOpen returns true if the Model has already established connection
+// to the database
+func (mdb *ModelDB) IsOpen() bool {
+	return mdb.isOpen
+}
+
+// Count returns the number of registered models
+func (mdb *ModelDB) Count() int {
+	return len(mdb.models)
 }

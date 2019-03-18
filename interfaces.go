@@ -7,30 +7,68 @@
 
 package pgorm
 
+import "github.com/go-pg/pg"
 
 // IDatabase defines the top level Database methods
+// Implementation found in individual files
 type IDatabase interface {
+	IOpen
 	IClose
+	IManager
+	IOptions
 	IGet
 	IChange
-	ILogger
 }
 
-// ILogger defines the logging related methods
-type ILogger interface {
-	Success(where string, message string)
-	Info(where string, message string)
-	Warn(where string, message string)
-	Error(where string, message string, err error)
-	Fatal(where string, message string, err error)
+// IManager defines the required methods for accessing the database
+// Implementation found in imanager.go
+// Status: Done
+// Test Coverage: Incomplete
+type IManager interface {
+	LoadCertificate(pgOptions *pg.Options) error
+	GenerateCertificate(host, destDir, organization string) error
+	Register(values ...interface{}) error
+	DropTables() error
+	AutoMigrateAll() error
+	IsOpen() bool
+	Count() int
 }
 
-// IConn defines the connection related methods
+// IOptions ...
+// Implementation found in ioptions.go
+// Status: Incomplete
+// Test Coverage: Incomplete
+type IOptions interface {
+	EnableSecured() error
+	DisableSecured() error
+	SetOptions(pgOpts *pg.Options)
+	GetOptions() *pg.Options
+	DefaultOptions() *pg.Options
+}
+
+// IOpen ...
+// Implementation found in iopen.go
+// Status: Incomplete
+// Test Coverage: Incomplete
+type IOpen interface {
+	Open() error
+	OpenWithParams(dbHost, dbUser, dbPass, dbName string) error
+	OpenWithConfig(user, database, password string, cfg []byte) error
+	OpenWithOptions(pgOpts *pg.Options) error
+}
+
+// IClose ...
+// Implementation found in iclose.go
+// Status: Incomplete
+// Test Coverage: Incomplete
 type IClose interface {
 	Close()
 }
 
-// IGet defines the get related methods
+// IGet defines the model get related methods
+// Implementation found in iget.go
+// Status: Incomplete
+// Test Coverage: Incomplete
 type IGet interface {
 	GetModel(model interface{}) error
 	GetAllModels(model interface{}) error
@@ -38,11 +76,14 @@ type IGet interface {
 	GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error
 }
 
-// IChange defines the change related methods
+// IChange defines the model change related methods
+// Implementation found in ichange.go
+// Status: Incomplete
+// Test Coverage: Incomplete
 type IChange interface {
 	SaveModel(model interface{}) error
 	UpdateModel(model interface{}) error
 	DeleteModel(model interface{}) error
-	CreateModel (model interface{}) error
+	CreateModel(model interface{}) error
 	DropTable(model interface{}) error
 }

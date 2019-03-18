@@ -8,68 +8,69 @@
 package pgorm
 
 import (
+	"log"
+
 	"github.com/pkg/errors"
 )
 
 // GetModel attempts retrieve the given model from the database.
-func (d *Database) GetModel(model interface{}) error {
+func (mdb *ModelDB) GetModel(model interface{}) error {
 	// Select model by given in model properties.
-	err := d.DB.Select(model)
+	err := mdb.db.Select(model)
 	if err != nil {
-		d.Error("GetModel", "Model not get", err)
+		log.Printf("GetModel", "Model not get", err)
 		return errors.New("Could not get model")
 	}
-	
-	d.Success("GetModel", "Model retrieve successfully")
+
+	log.Printf("GetModel", "Model retrieve successfully")
 	return nil
 }
 
 // GetAllModels attempts retrieve all models based on the given model from the database.
-func (d *Database) GetAllModels(model interface{}) error {
-	err := d.DB.Model(model).Select()
+func (mdb *ModelDB) GetAllModels(model interface{}) error {
+	err := mdb.db.Model(model).Select()
 	if err != nil {
-		d.Error("GetAllModels", "Models not get", err)
-		return errors.New("Could not get all models"+ err.Error())
+		log.Printf("GetAllModels", "Models not get", err)
+		return errors.New("Could not get all models" + err.Error())
 	}
 
-	d.Success("GetAllModels", "Model retrieve successfully")
+	log.Printf("GetAllModels", "Model retrieve successfully")
 	return nil
 }
 
 // GetWithCondition attempts retrieve a model based on the given model and condition from the database.
-func (d *Database) GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
+func (mdb *ModelDB) GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	conditionStr := checkIfString(condition)
 	if len(conditionStr) == 0 {
-		d.Warn("GetWithCondition", "Bad condition")
+		log.Printf("GetWithCondition", "Bad condition")
 		return errors.New("Bad condition")
 	}
 
-	if err := d.DB.Model(model).Where(conditionStr, args...).Select(); err != nil {
-		d.Error("GetWithCondition", "Models not get", err)
+	if err := mdb.db.Model(model).Where(conditionStr, args...).Select(); err != nil {
+		log.Printf("GetWithCondition", "Models not get", err)
 		return errors.New("Could not get all models")
 	}
-	
-	d.Success("GetWithCondition", "Model retrieve successfully")
+
+	log.Printf("GetWithCondition", "Model retrieve successfully")
 	return nil
 }
 
 // GetAllWithCondition attempts retrieve all models based on the given model and condition from the database.
-func (d *Database) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
+func (mdb *ModelDB) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	conditionStr := checkIfString(condition)
 	if len(conditionStr) == 0 {
-		d.Warn("GetWithCondition", "Bad condition")
+		log.Printf("GetWithCondition", "Bad condition")
 		return errors.New("Bad condition")
 	}
 
-	if err := d.DB.Model(model).Where(conditionStr, args...).Select(); err != nil {
-		d.Error("GetAllWithCondition", "Models not get", err)
-		return  errors.New("Could not get all models")
+	if err := mdb.db.Model(model).Where(conditionStr, args...).Select(); err != nil {
+		log.Printf("GetAllWithCondition", "Models not get", err)
+		return errors.New("Could not get all models")
 	}
-	
-	d.Success("GetAllWithCondition", "Model retrieve successfully")
+
+	log.Printf("GetAllWithCondition", "Model retrieve successfully")
 	return nil
 }
-
 
 //Check if conditions - string
 func checkIfString(data interface{}) string {

@@ -8,33 +8,47 @@
 package pgorm
 
 import (
-	"log"
+	"reflect"
 
 	"github.com/go-pg/pg"
 )
 
-// Database implements the PostgreSQL ORM
-type Database struct {
-	DB  *pg.DB
-	Log *log.Logger
+const (
+	pgORMDestDir = "./"
+	pgORMcrtFile = "pgorm-cert.pem"
+	pgORMkeyFile = "pgorm-key.pem"
+)
+
+// Model facilitate database interactions, supports postgres, mysql and foundation
+type ModelDB struct {
+	IDatabase
+	db      *pg.DB
+	opts    *pg.Options
+	models  map[string]reflect.Value
+	isOpen  bool
+	Migrate bool
+	Drop    bool
 }
 
-// NewDatabase - create instance of Database
-func NewDatabase(db *pg.DB, log *log.Logger) IDatabase {
-	return &Database{
-		DB:  db,
-		Log: log,
-	}
-}
-
-
-func NewDB(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables bool, models ...interface{}) (*Model, error) {
+func NewModelDB(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables bool, models ...interface{}) (*ModelDB, error) {
 	var err error
-	mod := NewModel(migrate, droptables)
+	mod := &Model{
+		models:  make(map[string]reflect.Value),
+		Migrate: migrate,
+		Drop:    dropTable,
+	}
 
-	err = mod.OpenWithDefault("postgres", "blog", "")
+	err = mod.OpenWithDefault(dbUser, dbName, dbHost)
 	if err != nil {
 		return nil, err
+	}
+
+	if secured {
+		err = mod.LoadCertificate(mod.opts)
+		if err != nil {
+			return nil, err
+
+		}
 	}
 
 	//register new model(s)
@@ -50,4 +64,13 @@ func NewDB(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables b
 	}
 
 	return mod, nil
+}
+
+// NewModel returns a new Model without opening database connection
+func NewModel(migrate, dropTable bool) *ModelDB {
+	return &ModelDB{
+		models:  make(map[string]reflect.Value),
+		Migrate: migrate,
+		Drop:    dropTable,
+	}
 }

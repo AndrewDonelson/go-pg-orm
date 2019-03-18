@@ -7,73 +7,63 @@
 
 package pgorm
 
-import (
-	"crypto/tls"
-	"encoding/json"
-	"log"
-	"os"
-	"time"
+// // OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
+// func openWithOptions(user, database, password string, data []byte) (IDatabase, error) {
+// 	opts := pg.Options{}
+// 	err := json.Unmarshal(data, &opts)
+// 	if err != nil {
+// 		//connect with default options
+// 		pgDB := pg.Connect(defaultOptions(user, database, password))
+// 		return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
+// 	}
 
-	"github.com/go-pg/pg"
-)
+// 	pgDB := pg.Connect(&opts)
+// 	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
+// }
 
-// OpenWithOptions -  Options must be converted into pg.Options{}, if not - use default options
-func openWithOptions(user, database, password string, data []byte) (IDatabase, error) {
-	opts := pg.Options{}
-	err := json.Unmarshal(data, &opts)
-	if err != nil {
-		//connect with default options
-		pgDB := pg.Connect(defaultOptions(user, database, password))
-		return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
-	}
+// // openWithDefaultOpts -  Options must be converted into pg.Options{}, if not - use default options
+// func openWithDefaultOpts(user, database, password string) (IDatabase, error) {
+// 	pgDB := pg.Connect(defaultOptions(user, database, password))
+// 	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
+// }
 
-	pgDB := pg.Connect(&opts)
-	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
-}
+// // Close closes the database client
+// func (d *Database) Close() {
+// 	err := d.DB.Close()
+// 	if err != nil {
+// 		d.Error("Database.Close", "Can not Close DB", err)
+// 		return
+// 	}
 
-// openWithDefaultOpts -  Options must be converted into pg.Options{}, if not - use default options
-func openWithDefaultOpts(user, database, password string) (IDatabase, error) {
-	pgDB := pg.Connect(defaultOptions(user, database, password))
-	return NewDatabase(pgDB, log.New(os.Stdout, "", 1)), nil
-}
+// 	d.Info("Database.Close", "Closed")
+// }
 
-// Close closes the database client
-func (d *Database) Close() {
-	err := d.DB.Close()
-	if err != nil {
-		d.Error("Database.Close", "Can not Close DB", err)
-		return
-	}
+// // defaultOptions sets the default options.
+// // Note: this is called (first) even if you open a connection with parameters.
+// func defaultOptions(user, database, password string) *pg.Options {
+// 	opts := &pg.Options{
+// 		User:     user,
+// 		Database: database,
+// 		Password: password,
+// 		TLSConfig: &tls.Config{
+// 			InsecureSkipVerify: true,
+// 		},
 
-	d.Info("Database.Close", "Closed")
-}
+// 		MaxRetries:      1,
+// 		MinRetryBackoff: -1,
 
-// defaultOptions sets the default options.
-// Note: this is called (first) even if you open a connection with parameters.
-func defaultOptions(user, database, password string) *pg.Options {
-	opts := &pg.Options{
-		User:     user,
-		Database: database,
-		Password: password,
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
+// 		DialTimeout:  30 * time.Second,
+// 		ReadTimeout:  10 * time.Second,
+// 		WriteTimeout: 10 * time.Second,
 
-		MaxRetries:      1,
-		MinRetryBackoff: -1,
+// 		PoolSize:           10,
+// 		MaxConnAge:         10 * time.Second,
+// 		PoolTimeout:        30 * time.Second,
+// 		IdleTimeout:        10 * time.Second,
+// 		IdleCheckFrequency: 100 * time.Millisecond,
+// 	}
 
-		DialTimeout:  30 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+// 	//LoadCertificate(opts)
 
-		PoolSize:           10,
-		MaxConnAge:         10 * time.Second,
-		PoolTimeout:        30 * time.Second,
-		IdleTimeout:        10 * time.Second,
-		IdleCheckFrequency: 100 * time.Millisecond,
-	}
-
-	LoadCertificate(opts)
-
-	return opts
-}
+// 	return opts
+// }

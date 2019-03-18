@@ -15,7 +15,20 @@ const (
 
 func main() {
 	var err error
-	mod := goPg.NewModel(true, true)
+	mod, moderr := goPg.NewDB(
+		"localhost",      //IP/Domain
+		userName,         //DB Username
+		password,         //DB Password
+		dbname,           //DB Name
+		true,             //User TLS Secure
+		true,             //Automigrate
+		true,             //Drop Tables
+		&model.Article{}, //Models to use
+	)
+	if moderr != nil {
+		return
+	}
+	//mod := goPg.NewModel(true, true)
 
 	err = mod.OpenWithDefault(userName, dbname, password)
 	if err != nil {
