@@ -16,6 +16,8 @@ import (
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/fatih/camelcase"
 )
 
 // Exists reports whether the named file or directory exists.
@@ -61,4 +63,22 @@ func getTypName(typ reflect.Type) string {
 	}
 	split := strings.Split(typ.String(), ".")
 	return split[len(split)-1]
+}
+
+// getEnvName is a static function that returns all upper case and underscore separated string, from a field.
+// field is a camel case string.
+//
+// example
+//	AppName will change to APP_NAME
+func getEnvName(field string) string {
+	camSplit := camelcase.Split(field)
+	var rst string
+	for k, v := range camSplit {
+		if k == 0 {
+			rst = strings.ToUpper(v)
+			continue
+		}
+		rst = rst + "_" + strings.ToUpper(v)
+	}
+	return rst
 }

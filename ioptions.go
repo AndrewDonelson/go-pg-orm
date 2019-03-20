@@ -9,10 +9,151 @@ package pgorm
 
 import (
 	"crypto/tls"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strconv"
 	"time"
+
+	"github.com/BurntSushi/toml"
+	"github.com/ghodss/yaml"
+	"github.com/hashicorp/hcl"
 
 	"github.com/go-pg/pg"
 )
+
+var errCfgUnsupported = errors.New("Config file format not supported")
+
+// Config ...
+type Config struct {
+	Database         string `json:"database" yaml:"database" toml:"database" hcl:"database"`
+	DatabaseUser     string `json:"database_user" yaml:"database_user" toml:"database_user" hcl:"database_user"`
+	DatabasePassword string `json:"database_password" yaml:"database_password" toml:"database_password" hcl:"database_password"`
+	Automigrate      bool   `json:"automigrate" yaml:"automigrate" toml:"automigrate" hcl:"automigrate"`
+	DropTables       bool   `json:"droptables" yaml:"droptables" toml:"droptables" hcl:"droptables"`
+	Secured          bool   `json:"secured" yaml:"secured" toml:"secured" hcl:"secured"`
+}
+
+// DefaultConfig returns the default configuration settings.
+func DefaultConfig() *Config {
+	return &Config{
+		Database:         "mydb",
+		DatabaseUser:     "postgres",
+		DatabasePassword: "postgres",
+		Automigrate:      true,
+		DropTables:       true,
+		Secured:          true,
+	}
+}
+
+// newConfig reads configuration from path. The format is deduced from the file extension
+//	* .json    - is decoded as json
+//	* .yml     - is decoded as yaml
+//	* .toml    - is decoded as toml
+//  * .hcl	   - is decoded as hcl
+func (mdb *ModelDB) newConfig(path string) (*Config, error) {
+	_, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := &Config{}
+	switch filepath.Ext(path) {
+	case ".json":
+		jerr := json.Unmarshal(data, cfg)
+		if jerr != nil {
+			return nil, jerr
+		}
+	case ".toml":
+		_, terr := toml.Decode(string(data), cfg)
+		if terr != nil {
+			return nil, terr
+		}
+	case ".yml":
+		yerr := yaml.Unmarshal(data, cfg)
+		if yerr != nil {
+			return nil, yerr
+		}
+	case ".hcl":
+		obj, herr := hcl.Parse(string(data))
+		if herr != nil {
+			return nil, herr
+		}
+		if herr = hcl.DecodeObject(&cfg, obj); herr != nil {
+			return nil, herr
+		}
+	default:
+		return nil, errCfgUnsupported
+	}
+
+	// err = mdb.syncEnv(cfg)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return cfg, nil
+}
+
+// defaultConfig returns the default configuration settings.
+func (mdb *ModelDB) defaultConfig() *Config {
+	return &Config{
+		Database:         "",
+		DatabaseUser:     "",
+		DatabasePassword: "",
+		Automigrate:      true,
+		DropTables:       true,
+		Secured:          true,
+	}
+}
+
+// SyncEnv overrides c field's values that are set in the environment.
+//
+// The environment variable names are derived from config fields by underscoring, and uppercasing
+// the name. E.g. AppName will have a corresponding environment variable APP_NAME
+//
+// NOTE only int, string and bool fields are supported and the corresponding values are set.
+// when the field value is not supported it is ignored.
+func (mdb *ModelDB) syncEnv() error {
+	cfg := reflect.ValueOf(mdb.conf).Elem()
+	cTyp := cfg.Type()
+
+	for k := range make([]struct{}, cTyp.NumField()) {
+		field := cTyp.Field(k)
+
+		cm := getEnvName(field.Name)
+		env := os.Getenv(cm)
+		if env == "" {
+			continue
+		}
+		switch field.Type.Kind() {
+		case reflect.String:
+			cfg.FieldByName(field.Name).SetString(env)
+		case reflect.Int:
+			v, err := strconv.Atoi(env)
+			if err != nil {
+				return fmt.Errorf("gowaf: loading config field %s %v", field.Name, err)
+			}
+			cfg.FieldByName(field.Name).Set(reflect.ValueOf(v))
+		case reflect.Bool:
+			b, err := strconv.ParseBool(env)
+			if err != nil {
+				return fmt.Errorf("gowaf: loading config field %s %v", field.Name, err)
+			}
+			cfg.FieldByName(field.Name).SetBool(b)
+		}
+
+	}
+	return nil
+}
 
 // EnableSecured ...
 func (mdb *ModelDB) EnableSecured() error {
@@ -36,11 +177,11 @@ func (mdb *ModelDB) GetOptions() *pg.Options {
 	return mdb.opts
 }
 
-// DefaultOptions ...
-func (mdb *ModelDB) DefaultOptions() *pg.Options {
+// defaultOptions ...
+func (mdb *ModelDB) defaultOptions() *pg.Options {
 	mdb.opts = &pg.Options{
 		User:     "postgres",
-		Database: "mydatabase",
+		Database: "mydb",
 		Password: "postgres",
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: true,

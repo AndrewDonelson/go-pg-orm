@@ -25,8 +25,6 @@ import (
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/go-pg/pg"
 )
 
 /********************************************************************
@@ -34,9 +32,13 @@ import (
 ********************************************************************/
 
 // Credit: https://gist.github.com/choestelus/8ddcc7106cc247cb5129d4e9c8ba5d64
-func (mdb *ModelDB) LoadCertificate() error {
-	if !fileExists(pgORMcrtFile) || !fileExists(pgORMkeyFile) {
-		mdb.GenerateCertificate(mdb.opts.host, pgORMDestDir, "")
+func (mdb *ModelDB) loadCertificate() error {
+
+	certfilepath := fmt.Sprintf("%s%s", pgORMDestDir, pgORMcrtFile)
+	keyfilepath := fmt.Sprintf("%s%s", pgORMDestDir, pgORMkeyFile)
+
+	if !fileExists(certfilepath) || !fileExists(keyfilepath) {
+		mdb.generateCertificate(mdb.opts.Addr, pgORMDestDir)
 	}
 	//cert, err := tls.LoadX509KeyPair("postgresql.crt", "postgresql.key")
 	cert, err := tls.LoadX509KeyPair(pgORMcrtFile, pgORMkeyFile)
@@ -63,7 +65,7 @@ func (mdb *ModelDB) LoadCertificate() error {
 		// ServerName:         "localhost",
 	}
 
-	pgOptions.TLSConfig = tlsConfig
+	mdb.opts.TLSConfig = tlsConfig
 	// opt := &pg.Options{
 	// 	Addr:      "localhost:5432",
 	// 	Database:  "postgres",
@@ -83,16 +85,16 @@ func (mdb *ModelDB) LoadCertificate() error {
 //	isCA       = "ca", false, "whether this cert should be its own Certificate Authority"
 //	rsaBits    = "rsa-bits", 2048, "Size of RSA key to generate. Ignored if --ecdsa-curve is set"
 //	ecdsaCurve = "ecdsa-curve", "", "ECDSA curve to use to generate a key. Valid values are P224, P256 (recommended), P384, P521"
-func (mdb *ModelDB) GenerateCertificate(host, destDir, organization string) error {
+func (mdb *ModelDB) generateCertificate(host, organization string) error {
 	//flag.Parse()
 
 	if len(host) == 0 {
 		log.Fatalf("Missing required host parameter")
 	}
 
-	if len(destDir) == 0 {
-		destDir = "./"
-	}
+	// if len(pgORMDestDir) == 0 {
+	// 	pgORMDestDir = "./"
+	// }
 
 	if len(organization) == 0 {
 		organization = "ACME Company"
@@ -180,40 +182,42 @@ func (mdb *ModelDB) GenerateCertificate(host, destDir, organization string) erro
 		return err
 	}
 
-	certOut, err := os.Create(pgORMcrtFile)
+	certfilepath := fmt.Sprintf("%s%s", pgORMDestDir, pgORMcrtFile)
+	certOut, err := os.Create(certfilepath)
 	if err != nil {
-		log.Fatalf("failed to open %s for writing: %s", pgORMcrtFile, err)
+		log.Fatalf("failed to open %s for writing: %s", certfilepath, err)
 		return err
 	}
 
 	if err := pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes}); err != nil {
-		log.Fatalf("failed to write data to %s: %s", pgORMcrtFile, err)
+		log.Fatalf("failed to write data to %s: %s", certfilepath, err)
 		return err
 	}
 
 	if err := certOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", pgORMcrtFile, err)
+		log.Fatalf("error closing %s: %s", certfilepath, err)
 		return err
 	}
-	log.Printf("wrote %s\n", pgORMcrtFile)
+	log.Printf("wrote %s\n", certfilepath)
 
-	keyOut, err := os.OpenFile(pgORMkeyFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyfilepath := fmt.Sprintf("%s%s", pgORMDestDir, pgORMkeyFile)
+	keyOut, err := os.OpenFile(keyfilepath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Printf("failed to open %s for writing: %s", pgORMkeyFile, err)
+		log.Printf("failed to open %s for writing: %s", keyfilepath, err)
 		return err
 	}
 
 	if err := pem.Encode(keyOut, pemBlockForKey(priv)); err != nil {
-		log.Fatalf("failed to write data to %s: %s", pgORMkeyFile, err)
+		log.Fatalf("failed to write data to %s: %s", keyfilepath, err)
 		return err
 	}
 
 	if err := keyOut.Close(); err != nil {
-		log.Fatalf("error closing %s: %s", pgORMkeyFile, err)
+		log.Fatalf("error closing %s: %s", keyfilepath, err)
 		return err
 	}
 
-	log.Printf("wrote %s\n", pgORMkeyFile)
+	log.Printf("wrote %s\n", keyfilepath)
 	return nil
 }
 
