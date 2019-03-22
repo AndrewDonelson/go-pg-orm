@@ -18,11 +18,11 @@ func (mdb *ModelDB) GetModel(model interface{}) error {
 	// Select model by given in model properties.
 	err := mdb.db.Select(model)
 	if err != nil {
-		log.Printf("GetModel", "Model not get", err)
+		log.Println("GetModel", "Model not get", err)
 		return errors.New("Could not get model")
 	}
 
-	log.Printf("GetModel", "Model retrieve successfully")
+	log.Println("GetModel", "Model retrieve successfully")
 	return nil
 }
 
@@ -30,11 +30,11 @@ func (mdb *ModelDB) GetModel(model interface{}) error {
 func (mdb *ModelDB) GetAllModels(model interface{}) error {
 	err := mdb.db.Model(model).Select()
 	if err != nil {
-		log.Printf("GetAllModels", "Models not get", err)
+		log.Println("GetAllModels", "Models not get", err)
 		return errors.New("Could not get all models" + err.Error())
 	}
 
-	log.Printf("GetAllModels", "Model retrieve successfully")
+	log.Println("GetAllModels", "Model retrieve successfully")
 	return nil
 }
 
@@ -42,16 +42,16 @@ func (mdb *ModelDB) GetAllModels(model interface{}) error {
 func (mdb *ModelDB) GetWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	conditionStr := checkIfString(condition)
 	if len(conditionStr) == 0 {
-		log.Printf("GetWithCondition", "Bad condition")
+		log.Println("GetWithCondition", "Bad condition")
 		return errors.New("Bad condition")
 	}
 
 	if err := mdb.db.Model(model).Where(conditionStr, args...).Select(); err != nil {
-		log.Printf("GetWithCondition", "Models not get", err)
+		log.Println("GetWithCondition", "Models not get", err)
 		return errors.New("Could not get all models")
 	}
 
-	log.Printf("GetWithCondition", "Model retrieve successfully")
+	log.Println("GetWithCondition", "Model retrieve successfully")
 	return nil
 }
 
@@ -59,16 +59,16 @@ func (mdb *ModelDB) GetWithCondition(model interface{}, condition interface{}, a
 func (mdb *ModelDB) GetAllWithCondition(model interface{}, condition interface{}, args ...interface{}) error {
 	conditionStr := checkIfString(condition)
 	if len(conditionStr) == 0 {
-		log.Printf("GetWithCondition", "Bad condition")
+		log.Println("GetWithCondition", "Bad condition")
 		return errors.New("Bad condition")
 	}
 
 	if err := mdb.db.Model(model).Where(conditionStr, args...).Select(); err != nil {
-		log.Printf("GetAllWithCondition", "Models not get", err)
+		log.Println("GetAllWithCondition", "Models not get", err)
 		return errors.New("Could not get all models")
 	}
 
-	log.Printf("GetAllWithCondition", "Model retrieve successfully")
+	log.Println("GetAllWithCondition", "Model retrieve successfully")
 	return nil
 }
 

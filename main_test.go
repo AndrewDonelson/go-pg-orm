@@ -2,6 +2,7 @@ package pgorm
 
 import (
 	"crypto/tls"
+	"log"
 	"testing"
 	"time"
 
@@ -60,7 +61,9 @@ func pgOptions() *pg.Options {
 }
 
 func TestCreateKeyPair(t *testing.T) {
-	err := GenerateCertificate("127.0.0.1", "./", "My Company LLC")
+	mdb := ModelDB{}
+
+	err := mdb.generateCertificate("127.0.0.1", "My Company LLC")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +71,7 @@ func TestCreateKeyPair(t *testing.T) {
 
 func TestRegisterModels(t *testing.T) {
 
-	models := NewModel(true, true) //models.Open()
+	models := NewModel() //models.Open()
 
 	models.Register(
 		&User{},
@@ -112,6 +115,37 @@ func TestOnConnect(t *testing.T) {
 	}
 }
 
-func test_package() {
-	db := NewDatabase(db *pg.DB, log *log.Logger)
+func myModels(t *testing.T) []interface{} {
+	models := []interface{}{&User{}, &Story{}}
+	return models
+}
+
+func TestAll(t *testing.T) {
+	mdb, err := NewModelDBParams(
+		"127.0.0.1", "postgres", "postgres", "mydb",
+		true, true, true,
+	)
+
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+	}
+
+	err = mdb.Register(&User{}, &Story{})
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+	}
+
+	err = mdb.Open()
+	if err != nil {
+		log.Println(err)
+		t.Fail()
+	}
+
+	if !mdb.IsOpen() {
+		log.Println(err)
+		t.Fail()
+	}
+
 }

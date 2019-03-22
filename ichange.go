@@ -20,11 +20,11 @@ func (mdb *ModelDB) CreateModel(model interface{}) error {
 		IfNotExists: true,
 	})
 	if err != nil {
-		log.Printf("CreateModel", "Model not created", err)
+		log.Println("CreateModel", "Model not created", err)
 		return errors.New("Could not create model" + err.Error())
 	}
 
-	log.Printf("CreateModel", "Model created successfully")
+	log.Println("CreateModel", "Model created successfully")
 	return nil
 }
 
@@ -32,11 +32,11 @@ func (mdb *ModelDB) CreateModel(model interface{}) error {
 func (mdb *ModelDB) SaveModel(model interface{}) error {
 	err := mdb.db.Insert(model)
 	if err != nil {
-		log.Printf("SaveModel", "Model not saved", err)
+		log.Println("SaveModel", "Model not saved", err)
 		return errors.New("Could not create model")
 	}
 
-	log.Printf("SaveModel", "Model saved successfully")
+	log.Println("SaveModel", "Model saved successfully")
 	return nil
 }
 
@@ -44,11 +44,11 @@ func (mdb *ModelDB) SaveModel(model interface{}) error {
 func (mdb *ModelDB) UpdateModel(model interface{}) error {
 	err := mdb.db.Update(model)
 	if err != nil {
-		log.Printf("UpdateModel", "Model not updated", err)
+		log.Println("UpdateModel", "Model not updated", err)
 		return errors.New("Could not update model")
 	}
 
-	log.Printf("UpdateModel", "Model updated successfully")
+	log.Println("UpdateModel", "Model updated successfully")
 	return nil
 }
 
@@ -56,11 +56,11 @@ func (mdb *ModelDB) UpdateModel(model interface{}) error {
 func (mdb *ModelDB) DeleteModel(model interface{}) error {
 	err := mdb.db.Delete(model)
 	if err != nil {
-		log.Printf("DeleteModel", "Model not delete", err)
+		log.Println("DeleteModel", "Model not delete", err)
 		return errors.New("Could not delete model")
 	}
 
-	log.Printf("DeleteModel", "Model deleted successfully")
+	log.Println("DeleteModel", "Model deleted successfully")
 	return nil
 }
 
@@ -68,10 +68,10 @@ func (mdb *ModelDB) DeleteModel(model interface{}) error {
 func (mdb *ModelDB) DropTable(model interface{}) error {
 	err := mdb.db.DropTable(model, &orm.DropTableOptions{true, true})
 	if err != nil {
-		log.Printf("DropTable", "Model not drop", err)
+		log.Println("DropTable", "Model not drop", err)
 		return errors.New("Could not drop table")
 	}
 
-	log.Printf("DropTable", "Model droped successfully")
+	log.Println("DropTable", "Model droped successfully")
 	return nil
 }

@@ -14,10 +14,10 @@ import (
 // Open attempts to open a connection to Postgres using all default postgres & pg.Options
 func (mdb *ModelDB) Open() error {
 	// Load default go-pg-orm config
-	mdb.conf = mdb.defaultConfig()
+	//mdb.conf = mdb.defaultConfig()
 
 	// Load default pg.Options
-	mdb.opts = mdb.defaultOptions()
+	//mdb.opts = mdb.defaultOptions()
 
 	return mdb.OpenWithOptions(mdb.opts)
 }
@@ -28,7 +28,7 @@ func (mdb *ModelDB) OpenWithParams(dbHost, dbUser, dbPass, dbName string) error 
 	mdb.conf = mdb.defaultConfig()
 
 	if len(dbName) > 0 {
-		mdb.conf.Database = dbName
+		mdb.conf.DatabaseName = dbName
 	}
 
 	if len(dbUser) > 0 {
@@ -65,5 +65,6 @@ func (mdb *ModelDB) OpenWithOptions(pgOpts *pg.Options) error {
 	if mdb.db == nil {
 		return nil
 	}
+	defer mdb.Close()
 	return nil
 }

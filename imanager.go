@@ -250,7 +250,7 @@ func (mdb *ModelDB) Register(values ...interface{}) error {
 
 // DropTables Drops All Model Database Tables
 func (mdb *ModelDB) DropTables() error {
-	if mdb.Drop {
+	if mdb.conf.DropTables {
 		for _, v := range mdb.models {
 			err := mdb.DropTable(v.Interface())
 			if err != nil {
@@ -265,7 +265,7 @@ func (mdb *ModelDB) DropTables() error {
 
 // AutoMigrateAll runs migrations for all the registered models
 func (mdb *ModelDB) AutoMigrateAll() error {
-	if mdb.Migrate {
+	if mdb.conf.Automigrate {
 		for _, v := range mdb.models {
 			err := mdb.CreateModel(v.Interface())
 			if err != nil {

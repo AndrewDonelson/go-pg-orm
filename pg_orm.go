@@ -23,13 +23,11 @@ const (
 // ModelDB facilitate database interactions, supports postgres, mysql and foundation
 type ModelDB struct {
 	IDatabase
-	db      *pg.DB                   // DB Connection
-	conf    *Config                  // go-pg-orm configuration options
-	opts    *pg.Options              // Current Options
-	models  map[string]reflect.Value // Hold map of all registered models
-	isOpen  bool                     // True of the connection to DB is active/open
-	Migrate bool                     // Set to true to auto migrate tables
-	Drop    bool                     // Set to true to auto drop tables on each run
+	db     *pg.DB                   // Database Connection
+	conf   *Config                  // go-pg-orm configuration options
+	opts   *pg.Options              // Current pg Options
+	models map[string]reflect.Value // Hold map of all registered models
+	isOpen bool                     // True of the connection to DB is active/open
 }
 
 // NewModelDBEnv create a connection to the db with enviroment variables and registers the provided models
@@ -56,48 +54,41 @@ func NewModelDBYAML(models ...interface{}) {
 
 }
 
-// NewModelDBParams create a connection to the db with the given parameters and registers the provided models
-func NewModelDBParams(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables bool, models ...interface{}) (*ModelDB, error) {
+// NewModelDBParams prepares a connection to the db with the given parameters. Does NOT open db.
+func NewModelDBParams(dbHost, dbUser, dbPass, dbName string, secured, migrate, droptables bool) (*ModelDB, error) {
 	var err error
-	mod := &ModelDB{
-		models:  make(map[string]reflect.Value),
-		Migrate: migrate,
-		Drop:    droptables,
-	}
+	mdb := NewModel()
 
-	err = mod.Open()
-	if err != nil {
-		return nil, err
-	}
+	mdb.defaultConfig()
+	mdb.conf.Automigrate = migrate
+	mdb.conf.DropTables = droptables
+	mdb.conf.Secured = secured
+	mdb.conf.DatabaseHost = dbHost
+	mdb.conf.DatabaseName = dbName
+	mdb.conf.DatabaseUser = dbUser
+	mdb.conf.DatabasePassword = dbPass
+
+	mdb.defaultOptions()
+
+	//err = mod.Open()
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	if secured {
-		err = mod.loadCertificate()
+		err = mdb.loadCertificate()
 		if err != nil {
 			return nil, err
 
 		}
 	}
 
-	//register new model(s)
-	err = mod.Register(&models)
-	if err != nil {
-		return nil, err
-	}
-
-	//migrate model
-	err = mod.AutoMigrateAll()
-	if err != nil {
-		return nil, err
-	}
-
-	return mod, nil
+	return mdb, nil
 }
 
 // NewModel returns a new Model without opening database connection
-func NewModel(migrate, dropTable bool) *ModelDB {
+func NewModel() *ModelDB {
 	return &ModelDB{
-		models:  make(map[string]reflect.Value),
-		Migrate: migrate,
-		Drop:    dropTable,
+		models: make(map[string]reflect.Value),
 	}
 }

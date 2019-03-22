@@ -30,24 +30,13 @@ var errCfgUnsupported = errors.New("Config file format not supported")
 
 // Config ...
 type Config struct {
-	Database         string `json:"database" yaml:"database" toml:"database" hcl:"database"`
+	DatabaseHost     string `json:"database_host" yaml:"database_host" toml:"database_host" hcl:"database_host"`
+	DatabaseName     string `json:"database_name" yaml:"database_name" toml:"database_name" hcl:"database_name"`
 	DatabaseUser     string `json:"database_user" yaml:"database_user" toml:"database_user" hcl:"database_user"`
 	DatabasePassword string `json:"database_password" yaml:"database_password" toml:"database_password" hcl:"database_password"`
 	Automigrate      bool   `json:"automigrate" yaml:"automigrate" toml:"automigrate" hcl:"automigrate"`
 	DropTables       bool   `json:"droptables" yaml:"droptables" toml:"droptables" hcl:"droptables"`
 	Secured          bool   `json:"secured" yaml:"secured" toml:"secured" hcl:"secured"`
-}
-
-// DefaultConfig returns the default configuration settings.
-func DefaultConfig() *Config {
-	return &Config{
-		Database:         "mydb",
-		DatabaseUser:     "postgres",
-		DatabasePassword: "postgres",
-		Automigrate:      true,
-		DropTables:       true,
-		Secured:          true,
-	}
 }
 
 // newConfig reads configuration from path. The format is deduced from the file extension
@@ -105,14 +94,16 @@ func (mdb *ModelDB) newConfig(path string) (*Config, error) {
 
 // defaultConfig returns the default configuration settings.
 func (mdb *ModelDB) defaultConfig() *Config {
-	return &Config{
-		Database:         "",
-		DatabaseUser:     "",
-		DatabasePassword: "",
+	mdb.conf = &Config{
+		DatabaseHost:     "",
+		DatabaseName:     "mydb",
+		DatabaseUser:     "postgres",
+		DatabasePassword: "postgres",
 		Automigrate:      true,
 		DropTables:       true,
 		Secured:          true,
 	}
+	return mdb.conf
 }
 
 // SyncEnv overrides c field's values that are set in the environment.
