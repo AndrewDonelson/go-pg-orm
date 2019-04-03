@@ -248,6 +248,14 @@ func (mdb *ModelDB) Register(values ...interface{}) error {
 	return nil
 }
 
+// HasTable check has table or not
+func (mdb *ModelDB) HasTable(value interface{}) bool {
+
+	qstr := fmt.Sprintf("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'schema_name' AND table_name = 'table_name');", &value)
+
+	return false
+}
+
 // DropTables Drops All Model Database Tables
 func (mdb *ModelDB) DropTables() error {
 	if mdb.conf.DropTables {
@@ -265,6 +273,10 @@ func (mdb *ModelDB) DropTables() error {
 
 // AutoMigrateAll runs migrations for all the registered models
 func (mdb *ModelDB) AutoMigrateAll() error {
+	if !mdb.IsOpen() {
+		fmt.Println("Database not open")
+	}
+
 	if mdb.conf.Automigrate {
 		for _, v := range mdb.models {
 			err := mdb.CreateModel(v.Interface())
@@ -280,7 +292,7 @@ func (mdb *ModelDB) AutoMigrateAll() error {
 // IsOpen returns true if the Model has already established connection
 // to the database
 func (mdb *ModelDB) IsOpen() bool {
-	return mdb.isOpen
+	return (mdb.db != nil)
 }
 
 // Count returns the number of registered models

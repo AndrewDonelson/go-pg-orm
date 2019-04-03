@@ -70,17 +70,14 @@ func NewModelDBParams(dbHost, dbUser, dbPass, dbName string, secured, migrate, d
 
 	mdb.defaultOptions()
 
-	//err = mod.Open()
-	//if err != nil {
-	//	return nil, err
-	//}
-
 	if secured {
 		err = mdb.loadCertificate()
 		if err != nil {
 			return nil, err
 
 		}
+	} else {
+		mdb.opts.TLSConfig = nil
 	}
 
 	return mdb, nil

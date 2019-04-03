@@ -66,6 +66,11 @@ func (mdb *ModelDB) DeleteModel(model interface{}) error {
 
 // DropTable drop table from db
 func (mdb *ModelDB) DropTable(model interface{}) error {
+	//mdb.db.HasTable(&User{})
+	//query := mdb.db.NewQuery(mdb.db, model)
+	//query := model.hasTable()
+	//&orm.hasTable(model)
+
 	err := mdb.db.DropTable(model, &orm.DropTableOptions{true, true})
 	if err != nil {
 		log.Println("DropTable", "Model not drop", err)

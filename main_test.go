@@ -2,7 +2,6 @@ package pgorm
 
 import (
 	"crypto/tls"
-	"log"
 	"testing"
 	"time"
 
@@ -96,8 +95,21 @@ func TestDBString(t *testing.T) {
 	}
 }
 
+func TestConnectNoSSL(t *testing.T) {
+	opt := pgOptions()
+	opt.TLSConfig = nil
+	db := pg.Connect(opt)
+	defer db.Close()
+
+}
+
+func TestConnectWithSSL(t *testing.T) {
+
+}
+
 func TestOnConnect(t *testing.T) {
 	opt := pgOptions()
+	opt.TLSConfig = nil
 	opt.OnConnect = func(db *pg.Conn) error {
 		_, err := db.Exec("SET application_name = 'myapp'")
 		return err
@@ -123,29 +135,40 @@ func myModels(t *testing.T) []interface{} {
 func TestAll(t *testing.T) {
 	mdb, err := NewModelDBParams(
 		"127.0.0.1", "postgres", "postgres", "mydb",
-		true, true, true,
+		false, true, true,
 	)
 
 	if err != nil {
-		log.Println(err)
+		println(err)
 		t.Fail()
 	}
 
 	err = mdb.Register(&User{}, &Story{})
 	if err != nil {
-		log.Println(err)
+		println(err)
 		t.Fail()
 	}
 
-	err = mdb.Open()
-	if err != nil {
-		log.Println(err)
+	opened := mdb.Open()
+	if opened != true {
+		println(err)
 		t.Fail()
 	}
 
 	if !mdb.IsOpen() {
-		log.Println(err)
+		println(err)
 		t.Fail()
 	}
 
+	err = mdb.AutoMigrateAll()
+	if err != nil {
+		println(err)
+		t.Fail()
+	}
+
+	err = mdb.DropTables()
+	if err != nil {
+		println(err)
+		t.Fail()
+	}
 }

@@ -12,14 +12,15 @@ import (
 )
 
 // Open attempts to open a connection to Postgres using all default postgres & pg.Options
-func (mdb *ModelDB) Open() error {
-	// Load default go-pg-orm config
-	//mdb.conf = mdb.defaultConfig()
+func (mdb *ModelDB) Open() bool {
 
-	// Load default pg.Options
-	//mdb.opts = mdb.defaultOptions()
+	mdb.db = pg.Connect(mdb.opts)
+	if mdb.db != nil {
+		defer mdb.db.Close()
+		return true
+	}
 
-	return mdb.OpenWithOptions(mdb.opts)
+	return false
 }
 
 // OpenWithParams attempts to open a connection to Postgres using default values but allows overriding several common parameters
